@@ -143,9 +143,9 @@ public class Chat {
           String a = packet.getAddress().getHostAddress();
           //System.out.println( a );
           
-          for( String ip : chat.listIP ) System.out.println( ip );
+          //for( String ip : chat.listIP ) System.out.println( ip );
           
-          if( !chat.listIP.contains( a ) ) continue;
+          if( chat.listIP.contains( a ) ) continue;
           chat.listIP.add( packet.getAddress().getHostAddress() );
           
           System.out.println( "Connect to " + packet.getAddress().getHostAddress() );
@@ -164,11 +164,20 @@ public class Chat {
           PrintWriter OUT = new PrintWriter( s.getOutputStream() );
           OUT.println( name );
           OUT.flush();
+          chat.stopWaitServer();
         }catch( Exception e) {
           e.printStackTrace();
         }
       }
     }  
+  }
+  
+  public void stopWaitServer() {
+    try { 
+      waitServer.stop();
+    }catch( Exception e) {
+      e.printStackTrace();
+    }
   }
   
   static class WaitClient extends Thread {
