@@ -18,6 +18,8 @@ public class Chat {
   private WaitClient waitClient;
   private FindClient findClient;
   
+  private List<ChatReturn> setChat;
+  
   private enum Role {
     HOST, CLIENT
   }
@@ -28,6 +30,8 @@ public class Chat {
     System.out.print( "Enter you name: " );
     name = scan.nextLine();
     listIP = new HashSet<String>();
+    
+    setChat = new ArrayList<>();
   }
   
   public void setting() {
@@ -149,9 +153,12 @@ public class Chat {
           chat.listIP.add( packet.getAddress().getHostAddress() );
           
           System.out.println( "Connect to " + packet.getAddress().getHostAddress() );
+          
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
+          
           ChatReturn x = new ChatReturn(s);
+          chat.setChat.add(x);
           x.start();
           
         }catch(Exception e) {
@@ -161,9 +168,9 @@ public class Chat {
         // do some thing with ip that not in the list and findServer
         try {
           
-          PrintWriter OUT = new PrintWriter( s.getOutputStream() );
+          PrintWriter OUT = new PrintWriter( s.getOutputStream(), true );
           OUT.println( name );
-          OUT.flush();
+          //OUT.flush();
           chat.stopWaitServer();
         }catch( Exception e) {
           e.printStackTrace();
@@ -173,7 +180,7 @@ public class Chat {
   }
   
   public void stopWaitServer() {
-    try { 
+    try {
       waitServer.stop();
     }catch( Exception e) {
       e.printStackTrace();
