@@ -220,6 +220,7 @@ public class Chat {
   }
   
   public void addUser( Socket socket ) throws Exception {
+    System.out.println("Connected");
     Scanner scan = new Scanner(socket.getInputStream());
     String username = scan.nextLine();
     // add username
@@ -267,5 +268,18 @@ public class Chat {
   public static void main(String[] args) {
     Chat chat = new Chat();
     chat.setRole();
+  }
+  
+  public void f() {
+    /*
+    String username = scan.nextLine();
+    // add username
+    
+    for(Socket s: sockets ) {
+      PrintWriter pr = new PrintWriter( s.getOutputStream() );
+      pr.println( username + " has joint.");
+      pr.flush();
+    }
+    */
   }
 }
