@@ -140,11 +140,7 @@ public class Chat {
           //if( chat.listIP.size() == size ) continue;
           
           String d = new String( packet.getData() );
-          //System.out.println( d );
-          
-          if( !d.equals("I'm Server") ) {
-            continue;
-          }
+          System.out.println( d );
           
           String a = packet.getAddress().getHostAddress();
           System.out.println( a );
