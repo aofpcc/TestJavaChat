@@ -192,6 +192,7 @@ public class Chat {
     private Chat chat;
     public WaitClient(Chat chat) {
       //System.out.println("WaitClient");
+      this.chat = chat;
       try{
         server = new ServerSocket( Chat.portC );
       }catch(Exception e) {
@@ -205,6 +206,7 @@ public class Chat {
       while( true ) {
         try {
           Socket sock = server.accept();
+          //System.out.println( sock );
           chat.addUser( sock );
           
           System.out.println("Client connected from: " + sock.getLocalAddress().getHostName());
@@ -239,16 +241,19 @@ public class Chat {
     }
   }
   
-  public void addUser( Socket socket ) throws Exception {
-    System.out.println("Connected");
-    Scanner scan = new Scanner(socket.getInputStream());
-    String username = scan.nextLine();
-    // add username
-    sockets.add( socket );
-    for(Socket s: sockets ) {
-      PrintWriter pr = new PrintWriter( s.getOutputStream() );
-      pr.println( username + " has joint.");
-      pr.flush();
+  public void addUser( Socket socket ) {
+    try{ 
+      Scanner scan = new Scanner(socket.getInputStream());
+      String username = scan.nextLine();
+      // add username
+      sockets.add( socket );
+      for(Socket s: sockets ) {
+        PrintWriter pr = new PrintWriter( s.getOutputStream() );
+        pr.println( username + " has joint.");
+        pr.flush();
+      }
+    }catch(Exception e){
+      System.err.println("Add user error : " + e);
     }
   }
   
@@ -292,14 +297,14 @@ public class Chat {
   
   public void f() {
     /*
-    String username = scan.nextLine();
-    // add username
-    
-    for(Socket s: sockets ) {
-      PrintWriter pr = new PrintWriter( s.getOutputStream() );
-      pr.println( username + " has joint.");
-      pr.flush();
-    }
-    */
+     String username = scan.nextLine();
+     // add username
+     
+     for(Socket s: sockets ) {
+     PrintWriter pr = new PrintWriter( s.getOutputStream() );
+     pr.println( username + " has joint.");
+     pr.flush();
+     }
+     */
   }
 }
