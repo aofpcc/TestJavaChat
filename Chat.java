@@ -146,8 +146,9 @@ public class Chat {
           if( !chat.listIP.contains( a ) ) continue;
           chat.listIP.add( packet.getAddress().getHostAddress() );
           
+          System.out.println( "Connect to " + packet.getAddress().getHostAddress() );
           s = new Socket( a, Chat.portC );
-          chat.addUser( s );
+          chat.sockets.add( s );
           ChatReturn x = new ChatReturn(s);
           x.start();
           
@@ -157,6 +158,7 @@ public class Chat {
         }
         // do some thing with ip that not in the list and findServer
         try {
+          
           PrintWriter OUT = new PrintWriter( s.getOutputStream() );
           OUT.println( name );
           OUT.flush();
