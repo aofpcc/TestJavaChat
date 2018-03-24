@@ -103,8 +103,9 @@ public class Chat {
       case 1: 
         findClient.start();
         waitClient.start();
+        f();
         break;
-      case 2: 
+      case 2:
         waitServer.start();
         break;
       default:;
@@ -157,10 +158,6 @@ public class Chat {
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
           
-          ChatReturn x = new ChatReturn(s);
-          chat.setChat.add(x);
-          x.start();
-          
         }catch(Exception e) {
           e.printStackTrace();
         }finally{
@@ -170,8 +167,9 @@ public class Chat {
           
           PrintWriter OUT = new PrintWriter( s.getOutputStream(), true );
           OUT.println( name );
-          //OUT.flush();
+          // OUT.flush();
           chat.stopWaitServer();
+          
         }catch( Exception e) {
           e.printStackTrace();
         }
@@ -209,7 +207,7 @@ public class Chat {
           //System.out.println( sock );
           chat.addUser( sock );
           
-          System.out.println("Client connected from: " + sock.getLocalAddress().getHostName());
+          //System.out.println("Client connected from: " + sock.getLocalAddress().getHostName());
           // create thread for accept chat
           
         }catch(Exception e) {
@@ -223,17 +221,21 @@ public class Chat {
     private Socket socket;
     private Scanner scan;
     private String name;
-    public ChatReturn(Socket socket) {
+    public ChatReturn(Socket socket, String name) {
       this.socket = socket;
+      this.name = name;
     }
     public void run() {
       while(true) {
         try{
           scan = new Scanner(socket.getInputStream());
-          System.out.print( "??? > ");
+          StringBuilder br = new StringBuilder();
           while(scan.hasNext()){
-            System.out.println(scan.nextLine());
+            br.append(scan.nextLine());
           }
+          if( br.toString().equals("") ) continue;
+          System.out.println( name + " > " + br.toString());
+          
         }catch(Exception e) {
           e.printStackTrace();
         }
@@ -247,9 +249,15 @@ public class Chat {
       String username = scan.nextLine();
       // add username
       sockets.add( socket );
+      
+      ChatReturn x = new ChatReturn(socket, username);
+      setChat.add(x);
+      x.start();
+      
+      System.out.println( username + " has joined." );
       for(Socket s: sockets ) {
         PrintWriter pr = new PrintWriter( s.getOutputStream() );
-        pr.println( username + " has joint.");
+        pr.println( username + " has joined.");
         pr.flush();
       }
     }catch(Exception e){
@@ -296,15 +304,18 @@ public class Chat {
   }
   
   public void f() {
-    /*
-     String username = scan.nextLine();
-     // add username
-     
-     for(Socket s: sockets ) {
-     PrintWriter pr = new PrintWriter( s.getOutputStream() );
-     pr.println( username + " has joint.");
-     pr.flush();
-     }
-     */
+    Scanner scan = new Scanner(System.in);
+    while(true) {
+      try{
+        String str = scan.nextLine();
+        for(Socket s: sockets ) {
+          PrintWriter pr = new PrintWriter( s.getOutputStream() );
+          pr.println(str);
+          pr.flush();
+        }
+      }catch(Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 }
