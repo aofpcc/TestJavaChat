@@ -158,6 +158,9 @@ public class Chat {
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
           
+          ChatReturn chat = new ChatReturn(s, "Server");
+          chat.start();
+          
         }catch(Exception e) {
           e.printStackTrace();
         }finally{
