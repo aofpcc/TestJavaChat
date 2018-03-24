@@ -160,9 +160,7 @@ public class Chat {
           
           ChatReturn x = new ChatReturn(s, "Server");
           x.start();
-          
           chat.setChat.add(x);
-          
           
         }catch(Exception e) {
           e.printStackTrace();
@@ -235,12 +233,10 @@ public class Chat {
       while(true) {
         try{
           scan = new Scanner(socket.getInputStream());
-          StringBuilder br = new StringBuilder();
-          while(scan.hasNext()){
-            br.append(scan.nextLine());
-          }
-          if( br.toString().equals("") ) continue;
-          System.out.println( name + " > " + br.toString());
+          String str = "";
+          if( scan.hasNext() ) str = scan.nextLine();
+          if( str.equals("") ) continue;
+          System.out.println( name + " > " + str);
           
         }catch(Exception e) {
           e.printStackTrace();
@@ -316,11 +312,12 @@ public class Chat {
     while(true) {
       try{
         String str = scan.nextLine();
-        System.out.println( sockets.size() );
+        //System.out.println( sockets.size() );
         for(Socket s: sockets) {
           //System.out.println( s );
-          PrintWriter pr = new PrintWriter( s.getOutputStream() , true);
+          PrintWriter pr = new PrintWriter( s.getOutputStream());
           pr.println(str);
+          pr.flush();
         }
       }catch(Exception e) {
         e.printStackTrace();
