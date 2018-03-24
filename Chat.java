@@ -147,6 +147,7 @@ public class Chat {
           }
           
           String a = packet.getAddress().getHostAddress();
+          System.out.println( a );
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
           
@@ -173,7 +174,6 @@ public class Chat {
       //System.out.println("WaitClient");
       try{
         server = new ServerSocket( Chat.portC );
-        
       }catch(Exception e) {
         e.printStackTrace();
       }
