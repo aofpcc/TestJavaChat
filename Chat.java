@@ -144,6 +144,9 @@ public class Chat {
           
           String a = packet.getAddress().getHostAddress();
           System.out.println( a );
+         
+          if( !chat.listIP.contains( a ) ) continue;
+          chat.listIP.add( packet.getAddress().getHostAddress() );
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
           
