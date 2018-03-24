@@ -107,6 +107,25 @@ public class Chat {
         break;
       case 2:
         waitServer.start();
+        Thread se = new Thread(new Runnable(){
+          public void run() {
+            while(true) {
+              try{
+                String str = scan.nextLine();
+                //System.out.println( sockets.size() );
+                System.out.println( "Me > " + str );
+                for(Socket s: sockets) {
+                  //System.out.println( s );
+                  PrintWriter pr = new PrintWriter( s.getOutputStream());
+                  pr.println(str);
+                  pr.flush();
+                }
+              }catch(Exception e) {
+                e.printStackTrace();
+              }
+            }
+          }
+        });
         break;
       default:;
     }
@@ -313,6 +332,7 @@ public class Chat {
       try{
         String str = scan.nextLine();
         //System.out.println( sockets.size() );
+        System.out.println( "Me > " + str );
         for(Socket s: sockets) {
           //System.out.println( s );
           PrintWriter pr = new PrintWriter( s.getOutputStream());
