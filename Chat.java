@@ -136,8 +136,8 @@ public class Chat {
           socket.receive( packet );
           
           int size = chat.listIP.size();
-          chat.listIP.add( packet.getAddress().getHostAddress() );
-          if( chat.listIP.size() == size ) continue;
+          //chat.listIP.add( packet.getAddress().getHostAddress() );
+          //if( chat.listIP.size() == size ) continue;
           
           String d = new String( packet.getData() );
           //System.out.println( d );
@@ -246,5 +246,4 @@ public class Chat {
     Chat chat = new Chat();
     chat.setRole();
   }
-  
 }
