@@ -143,6 +143,8 @@ public class Chat {
           String a = packet.getAddress().getHostAddress();
           //System.out.println( a );
           
+          for( String ip : chat.listIP ) System.out.println( ip );
+          
           if( !chat.listIP.contains( a ) ) continue;
           chat.listIP.add( packet.getAddress().getHostAddress() );
           
