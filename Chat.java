@@ -158,8 +158,11 @@ public class Chat {
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
           
-          ChatReturn chat = new ChatReturn(s, "Server");
-          chat.start();
+          ChatReturn x = new ChatReturn(s, "Server");
+          x.start();
+          
+          chat.setChat.add(x);
+          
           
         }catch(Exception e) {
           e.printStackTrace();
@@ -253,6 +256,8 @@ public class Chat {
       // add username
       sockets.add( socket );
       
+      System.out.println( sockets.size() );
+      
       ChatReturn x = new ChatReturn(socket, username);
       setChat.add(x);
       x.start();
@@ -311,10 +316,11 @@ public class Chat {
     while(true) {
       try{
         String str = scan.nextLine();
-        for(Socket s: sockets ) {
-          PrintWriter pr = new PrintWriter( s.getOutputStream() );
+        System.out.println( sockets.size() );
+        for(Socket s: sockets) {
+          //System.out.println( s );
+          PrintWriter pr = new PrintWriter( s.getOutputStream() , true);
           pr.println(str);
-          pr.flush();
         }
       }catch(Exception e) {
         e.printStackTrace();
