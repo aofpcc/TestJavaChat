@@ -140,15 +140,18 @@ public class Chat {
           //if( chat.listIP.size() == size ) continue;
           
           String d = new String( packet.getData() );
-          System.out.println( d );
+          //System.out.println( d );
           
           String a = packet.getAddress().getHostAddress();
-          System.out.println( a );
-         
+          //System.out.println( a );
+          
           if( !chat.listIP.contains( a ) ) continue;
           chat.listIP.add( packet.getAddress().getHostAddress() );
+          
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
+          ChatReturn x = new ChatReturn(s);
+          x.start();
           
         }catch(Exception e) {
           e.printStackTrace();
@@ -189,6 +192,28 @@ public class Chat {
           System.out.println("Client connected from: " + sock.getLocalAddress().getHostName());
           // create thread for accept chat
           
+        }catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+  
+  static class ChatReturn extends Thread {
+    private Socket socket;
+    private Scanner scan;
+    private String name;
+    public ChatReturn(Socket socket) {
+      this.socket = socket;
+    }
+    public void run() {
+      while(true) {
+        try{
+          scan = new Scanner(socket.getInputStream());
+          System.out.print( "??? > ");
+          while(scan.hasNext()){
+            System.out.println(scan.nextLine());
+          }
         }catch(Exception e) {
           e.printStackTrace();
         }
