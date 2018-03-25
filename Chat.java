@@ -6,7 +6,7 @@ import static java.lang.System.out;
 public class Chat {
   private Scanner scan;
   private static String name;
-  private Role role;
+  private static Role role;
   private static final int portB = 6969;
   private static final int portC = 6900;
   
@@ -100,11 +100,15 @@ public class Chat {
     }
     // Do some thing with role 
     switch( n ) {
-      case 1: 
+      case 1:
         findClient.start();
         waitClient.start();
-        f();
-        break;
+        while(true) {
+          Scanner scan = new Scanner(System.in);
+          String str = scan.nextLine();
+          System.out.println( "Me > " + str );
+          f( name + " > " + str);
+        }
       case 2:
         waitServer.start();
         Thread se = new Thread(new Runnable(){
@@ -117,7 +121,7 @@ public class Chat {
                 for(Socket s: sockets) {
                   //System.out.println( s );
                   PrintWriter pr = new PrintWriter( s.getOutputStream());
-                  pr.println(str);
+                  pr.println(name + " > " + str);
                   pr.flush();
                 }
               }catch(Exception e) {
@@ -126,6 +130,7 @@ public class Chat {
             }
           }
         });
+        se.start();
         break;
       default:;
     }
@@ -177,7 +182,7 @@ public class Chat {
           s = new Socket( a, Chat.portC );
           chat.sockets.add( s );
           
-          ChatReturn x = new ChatReturn(s, "Server");
+          ChatReturn x = new ChatReturn(s, chat);
           x.start();
           chat.setChat.add(x);
           
@@ -230,7 +235,7 @@ public class Chat {
           //System.out.println( sock );
           chat.addUser( sock );
           
-          //System.out.println("Client connected from: " + sock.getLocalAddress().getHostName());
+          System.out.println("Client connected from: " + sock.getLocalAddress().getHostName());
           // create thread for accept chat
           
         }catch(Exception e) {
@@ -243,10 +248,10 @@ public class Chat {
   static class ChatReturn extends Thread {
     private Socket socket;
     private Scanner scan;
-    private String name;
-    public ChatReturn(Socket socket, String name) {
+    private Chat chat;
+    public ChatReturn(Socket socket, Chat chat) {
       this.socket = socket;
-      this.name = name;
+      this.chat = chat;
     }
     public void run() {
       while(true) {
@@ -255,7 +260,8 @@ public class Chat {
           String str = "";
           if( scan.hasNext() ) str = scan.nextLine();
           if( str.equals("") ) continue;
-          System.out.println( name + " > " + str);
+          System.out.println( str );
+          if( chat.role == Role.HOST ) chat.f( str );
           
         }catch(Exception e) {
           e.printStackTrace();
@@ -273,7 +279,7 @@ public class Chat {
       
       System.out.println( sockets.size() );
       
-      ChatReturn x = new ChatReturn(socket, username);
+      ChatReturn x = new ChatReturn(socket, this);
       setChat.add(x);
       x.start();
       
@@ -284,7 +290,8 @@ public class Chat {
         pr.flush();
       }
     }catch(Exception e){
-      System.err.println("Add user error : " + e);
+      System.err.println("Add user error : ");
+      e.printStackTrace();
     }
   }
   
@@ -320,28 +327,22 @@ public class Chat {
       socket.close();
     }
   }
-  
-  public static void main(String[] args) {
-    Chat chat = new Chat();
-    chat.setRole();
-  }
-  
-  public void f() {
-    Scanner scan = new Scanner(System.in);
-    while(true) {
-      try{
-        String str = scan.nextLine();
-        //System.out.println( sockets.size() );
-        System.out.println( "Me > " + str );
-        for(Socket s: sockets) {
-          //System.out.println( s );
-          PrintWriter pr = new PrintWriter( s.getOutputStream());
-          pr.println(str);
-          pr.flush();
-        }
-      }catch(Exception e) {
-        e.printStackTrace();
+  /*
+   public static void main(String[] args) {
+   Chat chat = new Chat();
+   chat.setRole();
+   }
+   */
+  public void f(String str) {
+    try{
+      for(Socket s: sockets) {
+        //System.out.println( s );
+        PrintWriter pr = new PrintWriter( s.getOutputStream());
+        pr.println(str);
+        pr.flush();
       }
+    }catch(Exception e) {
+      e.printStackTrace();
     }
   }
 }
