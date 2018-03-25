@@ -327,12 +327,12 @@ public class Chat {
       socket.close();
     }
   }
-  /*
+  
    public static void main(String[] args) {
    Chat chat = new Chat();
    chat.setRole();
    }
-   */
+   
   public void f(String str) {
     try{
       for(Socket s: sockets) {
