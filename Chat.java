@@ -107,7 +107,7 @@ public class Chat {
           Scanner scan = new Scanner(System.in);
           String str = scan.nextLine();
           System.out.println( "Me > " + str );
-          f( name + " > " + str);
+          f( name + " > " + str, null);
         }
       case 2:
         waitServer.start();
@@ -261,7 +261,7 @@ public class Chat {
           if( scan.hasNext() ) str = scan.nextLine();
           if( str.equals("") ) continue;
           System.out.println( str );
-          if( chat.role == Role.HOST ) chat.f( str );
+          if( chat.role == Role.HOST ) chat.f( str, socket);
           
         }catch(Exception e) {
           e.printStackTrace();
@@ -333,9 +333,10 @@ public class Chat {
    chat.setRole();
    }
    
-  public void f(String str) {
+  public void f(String str, Socket sock) {
     try{
       for(Socket s: sockets) {
+        if( s == sock ) continue;
         //System.out.println( s );
         PrintWriter pr = new PrintWriter( s.getOutputStream());
         pr.println(str);
