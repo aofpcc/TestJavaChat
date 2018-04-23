@@ -19,10 +19,24 @@ public class GameOnline {
     private CatchClient cc;
     private String roomName;
     private Set<Client> clientSet;
-    
     public Host(String rn ) {
       roomName = rn;
       clientSet = new TreeSet<Client>();
+    }
+    public void testChat() {
+      Scanner scan = new Scanner(System.in);
+      while(true) {
+        try{
+          String str = scan.nextLine();
+          for(Client client : clientSet) {
+            PrintWriter pr = new PrintWriter(client.getSocket().getOutputStream());
+            pr.println(str);
+            pr.flush();
+          }
+        }catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
     }
     public void catchClient() {
       if( cc != null ) cc.interrupt();
@@ -52,6 +66,7 @@ public class GameOnline {
           System.out.println("Name : " + name);
           Client temp = new Client(name);
           temp.setIP(socket.getInetAddress().getHostAddress());
+          temp.setSocket(socket);
           clientSet.add( temp );
         }
       }catch( Exception e ) {
@@ -144,7 +159,7 @@ public class GameOnline {
   
   static class Client implements Comparable<Client>{
     private String ip;
-    private Socket host;
+    private Socket socket;
     private String name;
     private Set<String> hostList;
     private FindServer fs;
@@ -160,9 +175,15 @@ public class GameOnline {
       return ip;
     }
     public void setHost(Socket host) {
-      this.host = host;
+      this.socket = host;
       cs = new ConnectedServer(host);
       cs.start();
+    }
+    public void setSocket(Socket socket) {
+      this.socket = socket;
+    }
+    public Socket getSocket() {
+      return socket;
     }
     public void findServer() {
       if( fs != null ) fs.interrupt();
@@ -177,10 +198,10 @@ public class GameOnline {
       }
     }
     public void selectHost(String host) {
-      if( this.host != null) return;
+      if( socket != null) return;
       try {
         setHost(new Socket(host, GameOnline.portRoom));
-        PrintWriter pr = new PrintWriter(this.host.getOutputStream());
+        PrintWriter pr = new PrintWriter(socket.getOutputStream());
         pr.println(name);
         pr.flush();
       }catch(Exception e) {
