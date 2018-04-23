@@ -15,11 +15,20 @@ public class GameOnline {
   
   static class Host {
     public List<Socket> sockets;
-    private Set<String> listIP;
+    private Set<Socket> listBroadCast;
     private FindClient fc;
+    private CatchClient cc;
     private String roomName;
+    private Set<Client> clientSet;
+    
     public Host(String rn ) {
       roomName = rn;
+      clientSet = new TreeSet<Client>();
+    }
+    public void catchClient() {
+      if( cc != null ) cc.interrupt();
+      cc = new CatchClient(this);
+      cc.start();
     }
     public void findClient() {
       if( fc!= null ) {
@@ -32,6 +41,71 @@ public class GameOnline {
       if( fc == null ) return;
       fc.interrupt();
     }
+    public void addUser(Socket socket) {
+      if( listBroadCast.contains(socket) ) return;
+      listBroadCast.add(socket);
+      try {
+        Scanner scan = new Scanner(socket.getInputStream());
+        String name = "";
+        if( scan.hasNext() ) name = scan.nextLine();
+        System.out.println("Name : " + name);
+        Client temp = new Client(name);
+        temp.setIP(socket.getInetAddress().getHostAddress());
+        clientSet.add( temp );
+      }catch( Exception e ) {
+        e.printStackTrace();
+      }
+    }
+    
+    static class ConnectedClient extends Thread {
+      private Client client;
+      private Socket socket;
+      public ConnectedClient(Client client, Socket socket) {
+        this.client = client;
+        this.socket = socket;
+      }
+      @Override
+      public void run() {
+        try{
+          Scanner scan = new Scanner( socket.getInputStream() );
+          while(true) {
+            if(scan.hasNext() ) {
+              System.out.println(scan.nextLine());
+            }
+          }
+        }catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    
+    static class CatchClient extends Thread {
+      private ServerSocket server;
+      private Host host;
+      public CatchClient(Host host) {
+        try{
+          this.host = host;
+          server = new ServerSocket(GameOnline.portRoom);
+        }catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
+      @Override
+      public void run() {
+        System.out.println( "Waiting for clients...." );
+        while( true ) {
+          try {
+            Socket sock = server.accept();
+            host.addUser( sock );
+            System.out.println("Client connected from: " + sock.getInetAddress().getHostName());
+            // create thread for accept chat
+          }catch(Exception e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    
     static class FindClient extends Thread {
       private DatagramSocket socket;
       private List<String> listBroadCast;
@@ -72,19 +146,59 @@ public class GameOnline {
     private String name;
     private Set<String> hostList;
     private FindServer fs;
-    public Client() {
-      hostList = new HashSet<String>();
+    private ConnectedServer cs;
+    public Client(String name) {
+      hostList = new TreeSet<String>();
     }
-    public void setName(String name) {
-      this.name = name;
+    public void setIP(String ip) {
+      this.ip = ip;
     }
     public void setHost(Socket host) {
       this.host = host;
+      cs = new ConnectedServer(host);
+      cs.start();
     }
     public void findServer() {
       if( fs != null ) fs.interrupt();
       fs = new FindServer(this);
       fs.start();
+    }
+    public void showHost() {
+      System.out.println("Host List : ");
+      int count = 0;
+      for(String host: hostList) {
+        System.out.println( (++count) + " : " + host);
+      }
+    }
+    public void selectHost(String host) {
+      if( host != null) return;
+      try {
+        setHost(new Socket(host, GameOnline.portRoom));
+        PrintWriter pr = new PrintWriter(this.host.getOutputStream());
+        pr.println(name);
+        pr.flush();
+      }catch(Exception e) {
+        e.printStackTrace();
+      }
+    }
+    static class ConnectedServer extends Thread {
+      private Socket socket;
+      public ConnectedServer (Socket socket) {
+        this.socket = socket;
+      }
+      @Override
+      public void run() {
+        try {
+          Scanner scan = new Scanner(socket.getInputStream());
+          while(true) {
+            if( scan.hasNext() ) {
+              System.out.println(scan.nextLine());
+            }
+          }
+        }catch(Exception e) {
+          e.printStackTrace();
+        }
+      }
     }
     static class FindServer extends Thread {
       private DatagramSocket socket;
@@ -107,7 +221,8 @@ public class GameOnline {
             socket.receive( packet );
             
             int size = client.hostList.size();
-            client.hostList.add( packet.getAddress().getHostAddress() );
+            String ip = packet.getAddress().getHostAddress();
+            client.hostList.add( ip );
             if( client.hostList.size() == size ) continue;
             
             String d = new String( packet.getData() );
@@ -118,6 +233,7 @@ public class GameOnline {
             String[] temp = d.split(":"); // Server:Name
             String n = temp[1]; // n = name
             System.out.println(n);
+            client.selectHost(ip);
             //String a = packet.getAddress().getHostAddress();
             //chat.chatable.addHost( n, a);
             
@@ -136,9 +252,9 @@ public class GameOnline {
     return host = new Host(roomName);
   }
   
-  public static Client getClient() {
+  public static Client getClient(String name) {
     if(client!=null) return client;
-    return client = new Client();
+    return client = new Client(name);
   }
   
   public static void setBroadCast() {
