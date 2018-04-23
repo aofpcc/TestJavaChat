@@ -154,6 +154,7 @@ public class GameOnline {
       this.ip = ip;
     }
     public void setHost(Socket host) {
+      System.out.println(host);
       this.host = host;
       cs = new ConnectedServer(host);
       cs.start();
@@ -171,6 +172,7 @@ public class GameOnline {
       }
     }
     public void selectHost(String host) {
+      System.out.println(1 + " : " + host);
       if( this.host != null) return;
       try {
         setHost(new Socket(host, GameOnline.portRoom));
