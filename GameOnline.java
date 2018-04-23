@@ -19,7 +19,7 @@ public class GameOnline {
     private CatchClient cc;
     private String roomName;
     private Set<Client> clientSet;
-    public Host(String rn ) {
+    public Host(String rn) {
       roomName = rn;
       clientSet = new TreeSet<Client>();
     }
@@ -71,6 +71,9 @@ public class GameOnline {
           temp.setIP(socket.getInetAddress().getHostAddress());
           temp.setSocket(socket);
           clientSet.add( temp );
+          
+          ConnectedClient conn = new ConnectedClient(temp, socket, this);
+          conn.start();
         }
       }catch( Exception e ) {
         e.printStackTrace();
@@ -80,9 +83,11 @@ public class GameOnline {
     static class ConnectedClient extends Thread {
       private Client client;
       private Socket socket;
-      public ConnectedClient(Client client, Socket socket) {
+      private Host host;
+      public ConnectedClient(Client client, Socket socket, Host host) {
         this.client = client;
         this.socket = socket;
+        this.host = host;
       }
       @Override
       public void run() {
@@ -90,7 +95,8 @@ public class GameOnline {
           Scanner scan = new Scanner( socket.getInputStream() );
           while(true) {
             if(scan.hasNext() ) {
-              System.out.println(scan.nextLine());
+              //System.out.println(scan.nextLine());
+              host.broadCast(client.getName() + " : " + scan.nextLine());
             }
           }
         }catch(Exception e) {
@@ -177,6 +183,9 @@ public class GameOnline {
     }
     public String getIP() {
       return ip;
+    }
+    public String getName() {
+      return name;
     }
     public void setHost(Socket host) {
       this.socket = host;
