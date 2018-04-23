@@ -15,7 +15,6 @@ public class GameOnline {
   
   static class Host {
     public List<Socket> sockets;
-    private Set<Socket> listBroadCast;
     private FindClient fc;
     private CatchClient cc;
     private String roomName;
@@ -42,16 +41,19 @@ public class GameOnline {
       fc.interrupt();
     }
     public void addUser(Socket socket) {
-      if( listBroadCast.contains(socket) ) return;
-      listBroadCast.add(socket);
+      for( Client c : clientSet) {
+        if( c.getIP().equals(socket.getInetAddress().getHostAddress() ) ) return;
+      }
       try {
         Scanner scan = new Scanner(socket.getInputStream());
         String name = "";
-        if( scan.hasNext() ) name = scan.nextLine();
-        System.out.println("Name : " + name);
-        Client temp = new Client(name);
-        temp.setIP(socket.getInetAddress().getHostAddress());
-        clientSet.add( temp );
+        if( scan.hasNext() ) {
+          name = scan.nextLine();
+          System.out.println("Name : " + name);
+          Client temp = new Client(name);
+          temp.setIP(socket.getInetAddress().getHostAddress());
+          clientSet.add( temp );
+        }
       }catch( Exception e ) {
         e.printStackTrace();
       }
@@ -96,7 +98,6 @@ public class GameOnline {
         while( true ) {
           try {
             Socket sock = server.accept();
-            System.out.println("Accept");
             host.addUser( sock );
             System.out.println("Client connected from: " + sock.getInetAddress().getHostName());
             // create thread for accept chat
@@ -141,7 +142,7 @@ public class GameOnline {
     }
   }
   
-  static class Client {
+  static class Client implements Comparable<Client>{
     private String ip;
     private Socket host;
     private String name;
@@ -149,13 +150,16 @@ public class GameOnline {
     private FindServer fs;
     private ConnectedServer cs;
     public Client(String name) {
+      this.name = name;
       hostList = new TreeSet<String>();
     }
     public void setIP(String ip) {
       this.ip = ip;
     }
+    public String getIP() {
+      return ip;
+    }
     public void setHost(Socket host) {
-      System.out.println(host);
       this.host = host;
       cs = new ConnectedServer(host);
       cs.start();
@@ -182,6 +186,9 @@ public class GameOnline {
       }catch(Exception e) {
         e.printStackTrace();
       }
+    }
+    public int compareTo(Client c) {
+      return this.getIP().compareTo(c.getIP());
     }
     static class ConnectedServer extends Thread {
       private Socket socket;
