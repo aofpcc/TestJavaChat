@@ -71,6 +71,7 @@ public class GameOnline {
     private Socket host;
     private String name;
     private Set<String> hostList;
+    private FindServer fs;
     public Client() {
       hostList = new HashSet<String>();
     }
@@ -79,6 +80,11 @@ public class GameOnline {
     }
     public void setHost(Socket host) {
       this.host = host;
+    }
+    public void findServer() {
+      if( fs != null ) fs.interrupt();
+      fs = new FindServer(this);
+      fs.start();
     }
     static class FindServer extends Thread {
       private DatagramSocket socket;
