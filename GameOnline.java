@@ -171,8 +171,7 @@ public class GameOnline {
       }
     }
     public void selectHost(String host) {
-      System.out.println("Setting Host");
-      if( host != null) return;
+      if( this.host != null) return;
       try {
         setHost(new Socket(host, GameOnline.portRoom));
         PrintWriter pr = new PrintWriter(this.host.getOutputStream());
@@ -181,7 +180,6 @@ public class GameOnline {
       }catch(Exception e) {
         e.printStackTrace();
       }
-      System.out.println("Set Host SuccessFul");
     }
     static class ConnectedServer extends Thread {
       private Socket socket;
