@@ -173,7 +173,6 @@ public class GameOnline {
       }
     }
     public void selectHost(String host) {
-      System.out.println(1 + " : " + host);
       if( this.host != null) return;
       try {
         setHost(new Socket(host, GameOnline.portRoom));
