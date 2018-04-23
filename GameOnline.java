@@ -96,6 +96,7 @@ public class GameOnline {
         while( true ) {
           try {
             Socket sock = server.accept();
+            System.out.println("Accept");
             host.addUser( sock );
             System.out.println("Client connected from: " + sock.getInetAddress().getHostName());
             // create thread for accept chat
