@@ -2,36 +2,51 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import static java.lang.System.out;
-
+/**
+ * @author Aof
+ */
 public class Chat {
+  private List<User> users;
+  static class User {
+    private String ip; // ip is a primary key
+    private String name;
+    public User(String name, String ip) {
+      this.ip = ip.trim();
+      this.name = name;
+    }
+    
+    public String getName() {
+      return name;
+    }
+    public String getIP() {
+      return ip;
+    }
+  }
   private Scanner scan;
-  private static String name;
-  private static Role role;
-  private static final int portB = 6969;
-  private static final int portC = 6900;
+  private static String roomName = "default room";
+  private Role role;
+  public static final int portB = 6969;
+  public static final int portC = 6900;
   
-  private List<Socket> sockets;
+  private static Chat inc;
   
+  public List<Socket> sockets;
   private Set<String> listIP;
   
   private WaitServer waitServer;
   private WaitClient waitClient;
   private FindClient findClient;
   
-  private List<ChatReturn> setChat;
+  private Chatable chatable;
   
-  private enum Role {
-    HOST, CLIENT
-  }
+  private MainGame mainGame;
   
-  public Chat() {
+  private Chat() {
     sockets = new ArrayList<Socket>();
-    scan = new Scanner(System.in);
-    System.out.print( "Enter you name: " );
-    name = scan.nextLine();
+    //scan = new Scanner(System.in);
+    //System.out.print( "Enter you name: " );
+    //name = scan.nextLine();
     listIP = new HashSet<String>();
-    
-    setChat = new ArrayList<>();
   }
   
   public void setting() {
@@ -100,41 +115,17 @@ public class Chat {
     }
     // Do some thing with role 
     switch( n ) {
-      case 1:
+      case 1: 
         findClient.start();
         waitClient.start();
-        while(true) {
-          Scanner scan = new Scanner(System.in);
-          String str = scan.nextLine();
-          System.out.println( "Me > " + str );
-          f( name + " > " + str, null);
-        }
-      case 2:
+        break;
+      case 2: 
         waitServer.start();
-        Thread se = new Thread(new Runnable(){
-          public void run() {
-            while(true) {
-              try{
-                String str = scan.nextLine();
-                //System.out.println( sockets.size() );
-                System.out.println( "Me > " + str );
-                for(Socket s: sockets) {
-                  //System.out.println( s );
-                  PrintWriter pr = new PrintWriter( s.getOutputStream());
-                  pr.println(name + " > " + str);
-                  pr.flush();
-                }
-              }catch(Exception e) {
-                e.printStackTrace();
-              }
-            }
-          }
-        });
-        se.start();
         break;
       default:;
     }
   }
+  
   public boolean isNumber(String str) {
     try {
       Integer.parseInt( str);
@@ -150,6 +141,7 @@ public class Chat {
     public WaitServer(Chat chat) {
       this.chat = chat;
     }
+    
     @Override
     public void run() {
       try {
@@ -165,60 +157,38 @@ public class Chat {
           socket.receive( packet );
           
           int size = chat.listIP.size();
+          chat.listIP.add( packet.getAddress().getHostAddress() );
+          if( chat.listIP.size() == size ) continue;
           
           String d = new String( packet.getData() );
           //System.out.println( d );
           
+          if( d.indexOf("Server") == -1 ) {
+            continue;
+          }
+          String[] temp = d.split(":"); // 
+          String n = temp[1];
+          
           String a = packet.getAddress().getHostAddress();
-          //System.out.println( a );
+          chat.chatable.addHost( n, a);
           
-          //for( String ip : chat.listIP ) System.out.println( ip );
-          
-          if( chat.listIP.contains( a ) ) continue;
-          chat.listIP.add( packet.getAddress().getHostAddress() );
-          
-          System.out.println( "Connect to " + packet.getAddress().getHostAddress() );
-          
-          s = new Socket( a, Chat.portC );
-          chat.sockets.add( s );
-          
-          ChatReturn x = new ChatReturn(s, chat);
-          x.start();
-          chat.setChat.add(x);
-          
+          //s = new Socket( a, Chat.portC );
+          //chat.addUser(s);
         }catch(Exception e) {
           e.printStackTrace();
         }finally{
         }
         // do some thing with ip that not in the list and findServer
-        try {
-          
-          PrintWriter OUT = new PrintWriter( s.getOutputStream(), true );
-          OUT.println( name );
-          // OUT.flush();
-          chat.stopWaitServer();
-          
-        }catch( Exception e) {
-          e.printStackTrace();
-        }
       }
     }  
-  }
-  
-  public void stopWaitServer() {
-    try {
-      waitServer.stop();
-    }catch( Exception e) {
-      e.printStackTrace();
-    }
   }
   
   static class WaitClient extends Thread {
     private ServerSocket server;
     private Chat chat;
     public WaitClient(Chat chat) {
-      //System.out.println("WaitClient");
       this.chat = chat;
+      //System.out.println("WaitClient");
       try{
         server = new ServerSocket( Chat.portC );
       }catch(Exception e) {
@@ -226,18 +196,16 @@ public class Chat {
       }
       //System.out.println("Close WaitClient");
     }
+    
     @Override
     public void run() {
       System.out.println( "Waiting for clients...." );
       while( true ) {
         try {
           Socket sock = server.accept();
-          //System.out.println( sock );
           chat.addUser( sock );
-          
-          System.out.println("Client connected from: " + sock.getLocalAddress().getHostName());
+          System.out.println("Client connected from: " + sock.getInetAddress().getHostName());
           // create thread for accept chat
-          
         }catch(Exception e) {
           e.printStackTrace();
         }
@@ -253,6 +221,7 @@ public class Chat {
       this.socket = socket;
       this.chat = chat;
     }
+    
     public void run() {
       while(true) {
         try{
@@ -260,9 +229,16 @@ public class Chat {
           String str = "";
           if( scan.hasNext() ) str = scan.nextLine();
           if( str.equals("") ) continue;
-          System.out.println( str );
-          if( chat.role == Role.HOST ) chat.f( str, socket);
+          System.out.println(str);
+          String[] s = str.split(":");
           
+          if( chat.role == Role.HOST ) { 
+            String ans = chat.callApi(s, socket);
+            chat.f(ans, socket);
+          }else {
+            //System.out.println("Get API");
+            chat.getApi(s, socket);
+          }
         }catch(Exception e) {
           e.printStackTrace();
         }
@@ -270,29 +246,110 @@ public class Chat {
     }
   }
   
-  public void addUser( Socket socket ) {
-    try{ 
-      Scanner scan = new Scanner(socket.getInputStream());
-      String username = scan.nextLine();
-      // add username
-      sockets.add( socket );
-      
-      System.out.println( sockets.size() );
-      
-      ChatReturn x = new ChatReturn(socket, this);
-      setChat.add(x);
-      x.start();
-      
-      System.out.println( username + " has joined." );
-      for(Socket s: sockets ) {
-        PrintWriter pr = new PrintWriter( s.getOutputStream() );
-        pr.println( username + " has joined.");
+  public void getApi(String[] str, Socket socket) {
+    String status, ip;
+    String[] s;
+    int x,y;
+    switch(str[0].trim()) {
+      case "CurUser" : 
+        int size = Integer.parseInt(str[1].trim());
+        List<User> temp = new ArrayList<User>();
+        for(int i = 0; i < 2*size; i+=2) {
+          String username = str[i+2];
+          ip = str[i+3];
+          temp.add(new User(username, ip));
+        }
+        this.users = temp;
+        chatable.setListUser(users);
+        break;
+      case "UpdateIP":
+        status = str[1].trim();
+        s = status.split(",");
+        ip = s[0].trim();
+        x = Integer.parseInt(s[1].trim());
+        y = Integer.parseInt(s[2].trim());
+        mainGame.update( ip, x, y);
+        break;
+      case "StartGame":
+        chatable.startGame();
+        break;
+      default: ;
+    }
+  }
+  
+  public String callApi(String[] str, Socket socket) {
+    String status, ip;
+    String[] s;
+    int x,y;
+    switch(str[0].trim()) {
+      case "CurUser" : 
+        StringBuilder sb = new StringBuilder(str[0].trim() + ":");
+        sb.append("" + users.size() + ":");
+      for( User u : users) {
+        sb.append("" + u.name + ":" + u.ip + ":");
+      }
+      return sb.toString();
+      case "Update":
+        status = str[1].trim();
+        s = status.split(",");
+        ip = socket.getInetAddress().getHostName();
+        x = Integer.parseInt(s[0].trim());
+        y = Integer.parseInt(s[1].trim());
+        mainGame.update( ip, x, y);
+      default: 
+        return String.join("", str);
+    }
+  }
+  
+  public String callApi(String[] str) {
+    String status, ip;
+    String[] s;
+    int x,y;
+    switch(str[0].trim()) {
+      case "CurUser" : 
+        StringBuilder sb = new StringBuilder(str[0].trim() + ":");
+        sb.append("" + users.size() + ":");
+      for( User u : users) {
+        sb.append("" + u.name + ":" + u.ip + ":");
+      }
+      return sb.toString();
+      default: 
+        return String.join("", str);
+    }
+  }
+  
+  public void f(String str) { // BroadCast
+    
+    try{
+      for( Socket sock: sockets) {
+        PrintWriter pr = new PrintWriter( sock.getOutputStream());
+        pr.println(str);
         pr.flush();
       }
-    }catch(Exception e){
-      System.err.println("Add user error : ");
+    }catch(Exception e) {
       e.printStackTrace();
     }
+  }
+  
+  public void f(String str, Socket sock) { // BroadCast
+    try{
+      
+      PrintWriter pr = new PrintWriter( sock.getOutputStream());
+      pr.println(str);
+      pr.flush();
+      
+    }catch(Exception e) {
+      e.printStackTrace();
+    }
+  }
+  
+  public void addUser( Socket socket ) throws Exception {
+    Scanner scan = new Scanner(socket.getInputStream());
+    String username = scan.nextLine();
+    // add username
+    sockets.add( socket );
+    System.out.println( username + " :::: " + socket.getInetAddress().getHostName() );
+    chatable.addPlayer( username, socket.getInetAddress().getHostName());
   }
   
   static class FindClient extends Thread {
@@ -303,12 +360,13 @@ public class Chat {
       this.chat = chat;
       lastTimeSend = System.nanoTime();
     }
+    
     public void run() {
       while( true ) {
         try {
           for(String ip: chat.listIP) {
             //System.out.println( ip );
-            boardcastMessage("I'm Server", InetAddress.getByName(ip));
+            boardcastMessage("Server:" + roomName, InetAddress.getByName(ip));
           }
           Thread.sleep( 1000 );
         }catch(Exception e) {
@@ -316,6 +374,7 @@ public class Chat {
         }
       }
     }
+    
     public void boardcastMessage(String msg, InetAddress address) throws Exception{
       socket = new DatagramSocket();
       socket.setBroadcast(true);
@@ -328,22 +387,79 @@ public class Chat {
     }
   }
   
-   public static void main(String[] args) {
-   Chat chat = new Chat();
-   chat.setRole();
-   }
-   
-  public void f(String str, Socket sock) {
-    try{
-      for(Socket s: sockets) {
-        if( s == sock ) continue;
-        //System.out.println( s );
-        PrintWriter pr = new PrintWriter( s.getOutputStream());
-        pr.println(str);
-        pr.flush();
-      }
-    }catch(Exception e) {
-      e.printStackTrace();
+  public static void main(String[] args) {
+    Chat chat = new Chat();
+    chat.setRole();
+  }
+  
+  public void host() {
+    role = Role.HOST;
+    findBroadCast();
+    setting();
+    findClient.start();
+    waitClient.start();
+  }
+  
+  public void client() {
+    findBroadCast();
+    setting();
+    waitServer.start();
+  }
+  
+  public void end() {
+    if( findClient != null ) findClient.interrupt();
+    if( waitClient != null ) waitClient.interrupt();
+    if( waitServer != null ) waitServer.interrupt();
+  }
+  
+  public static Chat getInc() {
+    if( inc == null ) inc = new Chat();
+    return inc;
+  }
+  
+  public void set(Role role) {
+    if( role == Role.HOST && ( findClient == null || !findClient.isAlive()) ) {
+      end();
+      host();
+    }else if(role == Role.CLIENT && ( waitServer == null || !waitServer.isAlive())) {
+      end();
+      client();
     }
   }
+  
+  public static void setRoomName(String rn) {
+    roomName = rn;
+  }
+  
+  public void setDest(Chatable c) { // Set Destination
+    chatable = c;
+  }
+  
+  public void setUserList(List<User> users ) {
+    this.users = users;
+  }
+  
+  public List<User> getUser() {
+    return users;
+  }
+  
+  public void setUser(List<User> user) {
+    this.users = user;
+  }
+  
+  public void setMainGame(MainGame mainGame) {
+    this.mainGame = mainGame;
+  }
+  
+  public Role role() {
+    return role;
+  }
+}
+
+interface Chatable {
+  
+}
+
+enum Role{
+  HOST, CLIENT
 }
