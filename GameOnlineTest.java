@@ -6,6 +6,9 @@ public class GameOnlineTest {
     GameOnline.Host host = GameOnline.getHost("Aof");
     host.catchClient();
     host.findClient();
-    host.testChat();
+    
+    GameOnline.Client client = GameOnline.getClient("Bunya555");
+    client.findServer();
+    client.testChat();
   }
 }

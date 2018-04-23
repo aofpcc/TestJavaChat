@@ -26,16 +26,19 @@ public class GameOnline {
     public void testChat() {
       Scanner scan = new Scanner(System.in);
       while(true) {
-        try{
-          String str = scan.nextLine();
-          for(Client client : clientSet) {
-            PrintWriter pr = new PrintWriter(client.getSocket().getOutputStream());
-            pr.println(str);
-            pr.flush();
-          }
-        }catch(Exception e) {
-          e.printStackTrace();
+        String str = scan.nextLine();
+        broadCast(str); 
+      }
+    }
+    public void broadCast(String str) {
+      try{ 
+        for(Client client : clientSet) {
+          PrintWriter pr = new PrintWriter(client.getSocket().getOutputStream());
+          pr.println(str);
+          pr.flush();
         }
+      }catch(Exception e) {
+        e.printStackTrace();
       }
     }
     public void catchClient() {
@@ -164,6 +167,7 @@ public class GameOnline {
     private Set<String> hostList;
     private FindServer fs;
     private ConnectedServer cs;
+    private PrintWriter pr;
     public Client(String name) {
       this.name = name;
       hostList = new TreeSet<String>();
@@ -176,6 +180,11 @@ public class GameOnline {
     }
     public void setHost(Socket host) {
       this.socket = host;
+      try {
+        pr = new PrintWriter(host.getOutputStream());
+      } catch(Exception e ) {
+        e.printStackTrace();
+      }
       cs = new ConnectedServer(host);
       cs.start();
     }
@@ -210,6 +219,21 @@ public class GameOnline {
     }
     public int compareTo(Client c) {
       return this.getIP().compareTo(c.getIP());
+    }
+    public void testChat() {
+      Scanner scan = new Scanner(System.in);
+      while(true) {
+        String s = scan.nextLine();
+        sendToHost(s);
+      }
+    }
+    public void sendToHost(String str) {
+      try {
+        pr.println(str);
+        pr.flush();
+      } catch( Exception e) {
+        e.printStackTrace();
+      }
     }
     static class ConnectedServer extends Thread {
       private Socket socket;
