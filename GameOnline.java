@@ -107,6 +107,9 @@ public class GameOnline {
                 case MESSAGE:
                   host.broadCast(client.getName() + " : " + pack.getData());
                   break;
+                case UPDATE:
+                  System.out.println("Update : " + pack.getData());
+                  break;
                 default:;
               }
             }
@@ -244,8 +247,9 @@ public class GameOnline {
     public void testChat() {
       Scanner scan = new Scanner(System.in);
       while(true) {
-        String msg = scan.nextLine(); // message
-        sendToHost(new Pack(Pack.Type.MESSAGE, msg));
+        String data = scan.nextLine(); // message
+        if( data.indexOf("sysupdate") != -1 ) sendToHost(new Pack(Pack.Type.UPDATE, data.split("sysupdate")[1].trim()));
+        else sendToHost(new Pack(Pack.Type.MESSAGE, data));
       }
     }
     public void sendToHost(Pack pack) {
