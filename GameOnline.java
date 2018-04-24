@@ -41,6 +41,12 @@ public class GameOnline {
         e.printStackTrace();
       }
     }
+    public void showCurrentUser() {
+      System.out.println("Client List");
+      for(Client c: clientSet ) {
+        System.out.println(c.getName() + " : " + c.getIP());
+      }
+    }
     public void catchClient() {
       if( cc != null ) cc.interrupt();
       cc = new CatchClient(this);
@@ -96,7 +102,13 @@ public class GameOnline {
           while(true) {
             if(scan.hasNext() ) {
               //System.out.println(scan.nextLine());
-              host.broadCast(client.getName() + " : " + scan.nextLine());
+              Pack pack = new Pack(scan.nextLine());
+              switch(pack.getType() ) {
+                case MESSAGE:
+                  host.broadCast(client.getName() + " : " + pack.getData());
+                  break;
+                default:;
+              }
             }
           }
         }catch(Exception e) {
@@ -232,13 +244,13 @@ public class GameOnline {
     public void testChat() {
       Scanner scan = new Scanner(System.in);
       while(true) {
-        String s = scan.nextLine();
-        sendToHost(s);
+        String msg = scan.nextLine(); // message
+        sendToHost(new Pack(Pack.Type.MESSAGE, msg));
       }
     }
-    public void sendToHost(String str) {
+    public void sendToHost(Pack pack) {
       try {
-        pr.println(str);
+        pr.println(pack);
         pr.flush();
       } catch( Exception e) {
         e.printStackTrace();
@@ -360,4 +372,38 @@ public class GameOnline {
     return listOfBroadcasts;
   }
   
+}
+
+class Pack {
+  static enum Type {
+    MESSAGE, // message
+    UPDATE,
+    BROADCAST
+  }
+  private String data;
+  private Type type;
+  public Pack(String str) {
+    String[] arr = str.split(":");
+    switch( arr[0].trim() ) {
+      case "MESSAGE" : type = Type.MESSAGE; break;
+      case "UPDATE" : type = Type.UPDATE; break;
+      case "BROADCAST" : type = Type.BROADCAST; break;
+      default: System.err.println("Unknown Type");
+    }
+    this.data = arr[1];
+  }
+  public Pack(Type type, String data) {
+    this.type = type;
+    this.data = data;
+  }
+  public Type getType() {
+    return type;
+  }
+  public String getData() {
+    return data;
+  }
+  public String toString() {
+    if( type == null ) return "";
+    return type + ":" + data;
+  }
 }

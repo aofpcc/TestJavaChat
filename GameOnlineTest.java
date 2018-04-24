@@ -1,14 +1,25 @@
 import java.net.*;
 import java.util.*;
-public class GameOnlineTest {
+public class GameOnlineTest { // Server
   public static void main(String... args) {
+    String prompt = "Console::";
+    Scanner scan = new Scanner(System.in);
     GameOnline.setBroadCast();
     GameOnline.Host host = GameOnline.getHost("Aof");
     host.catchClient();
     host.findClient();
-    
-    GameOnline.Client client = GameOnline.getClient("Bunya555");
-    client.findServer();
-    client.testChat();
+    while(true) {
+      System.out.print( prompt + " >");
+      String str = scan.nextLine().trim();
+      switch(str) {
+        case "listAll" :
+          host.showCurrentUser();
+          break;
+        case "prompt" :
+          prompt = scan.nextLine(); // ""
+          break;
+        default: ;
+      }
+    }
   }
 }
