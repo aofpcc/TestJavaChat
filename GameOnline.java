@@ -108,7 +108,8 @@ public class GameOnline {
                   host.broadCast(client.getName() + " : " + pack.getData());
                   break;
                 case UPDATE:
-                  System.out.println("Update : " + pack.getData());
+                  System.out.println( client.getName() +  ": Update : " + pack.getData());
+                  host.broadCast(client.getName() + " : Broadcast : " + pack.getData());
                   break;
                 default:;
               }
@@ -189,6 +190,7 @@ public class GameOnline {
     private FindServer fs;
     private ConnectedServer cs;
     private PrintWriter pr;
+    private static long lastTime;
     public Client(String name) {
       this.name = name;
       hostList = new TreeSet<String>();
@@ -254,6 +256,8 @@ public class GameOnline {
     }
     public void sendToHost(Pack pack) {
       try {
+        //System.out.println("Sent Time : " + System.nanoTime());
+        lastTime = System.nanoTime();
         pr.println(pack);
         pr.flush();
       } catch( Exception e) {
@@ -271,6 +275,7 @@ public class GameOnline {
           Scanner scan = new Scanner(socket.getInputStream());
           while(true) {
             if( scan.hasNext() ) {
+              System.out.println("Ping Time : " + (System.nanoTime()- lastTime)/1000000 + "ms");
               System.out.println(scan.nextLine());
             }
           }
